@@ -1,6 +1,7 @@
 362
   import React, { useState, useRef, useEffect } from 'react';
 import { FileText, Users, Download, CheckCircle, Clock, X, Upload, Eye, Copy, Link, Bell, Lock } from 'lucide-react';
+import { PDFDocument, rgb } from 'pdf-lib';
 
 const ApartmentSignatureApp = () => {
   const [view, setView] = useState('login'); // login, admin, sign
@@ -832,6 +833,7 @@ const ApartmentSignatureApp = () => {
 
 
 export default ApartmentSignatureApp;
+
 
 
 
