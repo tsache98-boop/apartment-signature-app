@@ -68,7 +68,6 @@ const ApartmentSignatureApp = () => {
       }
             setSignatures(sigs);
 
-      }
     } catch (error) {}
 
     try {
@@ -819,5 +818,6 @@ const ApartmentSignatureApp = () => {
     </div>
   );
 };
+
 
 export default ApartmentSignatureApp;
