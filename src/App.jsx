@@ -392,9 +392,7 @@ const downloadFinal = async () => {
     }
   };
 
-    };
-
-  const clearNotifications = async () => {
+      const clearNotifications = async () => {
     localStorage.setItem('notifications', JSON.stringify([]));
     setNotifications([]);
   };
@@ -865,6 +863,7 @@ const downloadFinal = async () => {
 
 
 export default ApartmentSignatureApp;
+
 
 
 
