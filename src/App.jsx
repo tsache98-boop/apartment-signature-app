@@ -299,7 +299,7 @@ const ApartmentSignatureApp = () => {
   const downloadFinal = () => {
     const html = `
 <!DOCTYPE html>
-<html dir="rtl">
+<html dir="rtl" lang="he-IL">
 <head>
   <meta charset="utf-8">
   <title>רחבת הרב עוזיאל 4-14 - מסמך חתום</title>
@@ -719,7 +719,7 @@ const ApartmentSignatureApp = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-bold text-gray-800 mb-2">
-                    מייל <span className="text-gray-400 text-xs">(לא חובה)</span>
+                    
                   </label>
                   <input
                     type="email"
@@ -732,7 +732,7 @@ const ApartmentSignatureApp = () => {
 
                 <div>
                   <label className="block text-sm font-bold text-gray-800 mb-2">
-                    טלפון <span className="text-gray-400 text-xs">(לא חובה)</span>
+                    
                   </label>
                   <input
                     type="tel"
@@ -771,7 +771,7 @@ const ApartmentSignatureApp = () => {
                     ref={canvasRef}
                     width={1200}
                     height={300}
-                    className="w-full touch-none"
+                    className="w-full touch-none border-2 border-gray-400"
                     style={{ touchAction: 'none', cursor: 'crosshair' }}
                     onMouseDown={startDraw}
                     onMouseMove={doDraw}
