@@ -53,10 +53,11 @@ const ApartmentSignatureApp = () => {
 
   const loadData = async () => {
     try {
-      const keys = await window.storage.list('apartment:');
-      if (keys?.keys) {
-        const sigs = [];
-        for (const key of keys.keys) {
+      const sigs = [];
+      // Get all keys from localStorage that start with 'apartment:'
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('apartment:')) {
           try {
             const result = localStorage.getItem(key);
             if (result) {
@@ -64,7 +65,8 @@ const ApartmentSignatureApp = () => {
             }
           } catch (e) {}
         }
-        setSignatures(sigs);
+      }
+
       }
     } catch (error) {}
 
