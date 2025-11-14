@@ -297,69 +297,102 @@ const ApartmentSignatureApp = () => {
     }
   };
 
-  const downloadFinal = () => {
-    const html = `
-<!DOCTYPE html>
-<html dir="rtl" lang="he-IL">
-<head>
-  <meta charset="utf-8">
-  <title>רחבת הרב עוזיאל 4-14 - מסמך חתום</title>
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    h1 { text-align: center; color: #1e40af; }
-    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    th, td { border: 1px solid #ddd; padding: 10px; text-align: right; }
-    th { background: #3b82f6; color: white; }
-    tr:nth-child(even) { background: #f9fafb; }
-    .sig-img { max-width: 180px; max-height: 70px; }
-  </style>
-</head>
-<body>
-  <h1>🏢 רחבת הרב עוזיאל 4-14 - כניסות זוגיות</h1>
-  <p style="text-align:center">מסמך חתום | ${new Date().toLocaleDateString('he-IL')}</p>
-  <p style="text-align:center; font-size:20px"><strong>חתמו: ${signedCount}/32 (${percentage}%)</strong></p>
-  
-  <table>
-    <tr>
-      <th>דירה</th><th>שם מלא</th><th>תאריך</th><th>מייל</th><th>טלפון</th><th>חתימה</th>
-    </tr>
-    ${apartments.map(apt => {
-      const sig = getSig(apt.id);
-      return `<tr>
-        <td><strong>${apt.id}</strong></td>
-        <td>${sig ? sig.fullName : '—'}</td>
-        <td>${sig ? sig.date : '—'}</td>
-        <td>${sig?.email || '—'}</td>
-        <td>${sig?.phone || '—'}</td>
-        <td>${sig ? `<img src="${sig.signature}" class="sig-img"/>` : '—'}</td>
-      </tr>`;
-    }).join('')}
-  </table>
-  
-  <p style="margin-top:30px; padding:15px; background:#fef3c7; border-radius:8px;">
-    <strong>📌 הערה:</strong> מסמך זה נוצר אוטומטית ממערכת חתימות דיגיטלית. 
-    החתימות תקפות ונאספו בתאריך ${new Date().toLocaleString('he-IL')}.
-  </p>
-</body>
-</html>`;
-
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `מסמך_חתום_עוזיאל_${new Date().toISOString().split('T')[0]}.html`;
-    a.click();
-    URL.revokeObjectURL(url);
-    
-    // Download PDF if it exists
-    if (pdfData) {
-      const pdfLink = document.createElement('a');
-      pdfLink.href = pdfData;
-      pdfLink.download = `מסמך_מקורי_${new Date().toISOString().split('T')[0]}.pdf`;
-      pdfLink.click();
+const downloadFinal = async () => {
+    if (!pdfData) {
+      alert('⚠️ יש להעלות מסמך PDF תחילה');
+      return;
     }
-        alert(pdfData ? 'המסמכים ירדו בהצלחה! ניתן למצוא אותם בתיקיית ההורדות ✅ \n\nPDF-ה וטבלת חתימות [יחד]' : 'המסמך ירד בהצלחה! ✅ \n\nטבלת חתימות בדפדפך ולשמור ב-PDF');
+
+    try {
+      // Load the original PDF
+      const pdfDoc = await PDFDocument.load(pdfData);
+      
+      // Add a new page for signatures
+      const page = pdfDoc.addPage();
+      const { width, height } = page.getSize();
+      
+      // Title
+      const titleFontSize = 20;
+      const titleText = 'רחבת הרב עוזיאל 4-14 - מסמך חתום';
+      page.drawText(titleText, {
+        x: width / 2 - 150,
+        y: height - 50,
+        size: titleFontSize,
+        color: rgb(0.1, 0.4, 0.6)
+      });
+      
+      // Date
+      const dateText = `תאריך: ${new Date().toLocaleDateString('he-IL')}`;
+      page.drawText(dateText, {
+        x: 50,
+        y: height - 90,
+        size: 12,
+        color: rgb(0, 0, 0)
+      });
+      
+      // Statistics
+      const statsText = `חתמו: ${signedCount}/32 (${percentage}%)`;
+      page.drawText(statsText, {
+        x: 50,
+        y: height - 110,
+        size: 14,
+        color: rgb(0, 0, 0)
+      });
+      
+      // Table headers
+      let yPosition = height - 150;
+      const lineHeight = 20;
+      
+      page.drawText('דירה', { x: 50, y: yPosition, size: 12, color: rgb(0, 0, 0) });
+      page.drawText('שם מלא', { x: 120, y: yPosition, size: 12, color: rgb(0, 0, 0) });
+      page.drawText('תאריך', { x: 250, y: yPosition, size: 12, color: rgb(0, 0, 0) });
+      page.drawText('מייל', { x: 350, y: yPosition, size: 12, color: rgb(0, 0, 0) });
+      page.drawText('טלפון', { x: 470, y: yPosition, size: 12, color: rgb(0, 0, 0) });
+      
+      yPosition -= lineHeight;
+      
+      // Draw a line under headers
+      page.drawLine({
+        start: { x: 50, y: yPosition },
+        end: { x: width - 50, y: yPosition },
+        thickness: 1,
+        color: rgb(0, 0, 0)
+      });
+      
+      yPosition -= lineHeight;
+      
+      // Add signature data
+      apartments.forEach(apt => {
+        const sig = getSig(apt.id);
+        if (sig) {
+          page.drawText(String(apt.id), { x: 50, y: yPosition, size: 10, color: rgb(0, 0, 0) });
+          page.drawText(sig.fullName || '—', { x: 120, y: yPosition, size: 10, color: rgb(0, 0, 0) });
+          page.drawText(sig.date || '—', { x: 250, y: yPosition, size: 10, color: rgb(0, 0, 0) });
+          page.drawText(sig.email || '—', { x: 350, y: yPosition, size: 10, color: rgb(0, 0, 0) });
+          page.drawText(sig.phone || '—', { x: 470, y: yPosition, size: 10, color: rgb(0, 0, 0) });
+          yPosition -= lineHeight;
+        }
+      });
+      
+      // Save and download
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `מסמך_חתום_${new Date().toISOString().split('T')[0]}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      alert('✅ הקובץ המאוחד הורד בהצלחה! ✅ \n\nהPDF כולל את המסמך המקורי + דף עם החתימות [✅].');
+      
+    } catch (error) {
+      console.error('Error creating unified PDF:', error);
+      alert('⚠️ אירעה שגיאה ביצירת PDF מאוחד. נסה שנית.');
+    }
   };
+
+    };
 
   const clearNotifications = async () => {
     localStorage.setItem('notifications', JSON.stringify([]));
@@ -833,6 +866,7 @@ const ApartmentSignatureApp = () => {
 
 
 export default ApartmentSignatureApp;
+
 
 
 
