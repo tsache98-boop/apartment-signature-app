@@ -685,11 +685,10 @@ const ApartmentSignatureApp = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-bold">3.</span>
-                  <span>ציין מייל וטלפון אם תרצה (אופציונלי)</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-bold">4.</span>
-                  <span>צייר את חתימתך בתיבה הכחולה למטה</span>
+                  
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-bold">5.</span>
@@ -833,5 +832,6 @@ const ApartmentSignatureApp = () => {
 
 
 export default ApartmentSignatureApp;
+
 
 
