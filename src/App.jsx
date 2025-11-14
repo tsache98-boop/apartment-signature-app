@@ -815,11 +815,11 @@ const downloadFinal = async () => {
                     ref={canvasRef}
                     width={1200}
                     height={300}
-                    className="w-full touch-none border-4 border-gray-800 bg-white rounded-lg shadow-md4
+                    className="w-full touch-none border-4 border-gray-800 bg-white rounded-lg shadow-md"
                     style={{ touchAction: 'none', cursor: 'crosshair' }}
                     onMouseDown={startDraw}
                     onMouseMove={doDraw}
-                    onMouseUp={endDraw}
+                    onMouseUp={endDraw"
                     onMouseLeave={endDraw}
                     onTouchStart={startDraw}
                     onTouchMove={doDraw}
@@ -865,6 +865,7 @@ const downloadFinal = async () => {
 
 
 export default ApartmentSignatureApp;
+
 
 
 
