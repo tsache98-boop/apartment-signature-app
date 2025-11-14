@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+362
+  import React, { useState, useRef, useEffect } from 'react';
 import { FileText, Users, Download, CheckCircle, Clock, X, Upload, Eye, Copy, Link, Bell, Lock } from 'lucide-react';
 
 const ApartmentSignatureApp = () => {
@@ -359,7 +360,7 @@ const ApartmentSignatureApp = () => {
   // Login View
   if (view === 'login') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4" dir="rtl">
+      <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50 flex items-center justify-center p-4" dir="rtl">
         <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full">
           <div className="text-center mb-8">
             <FileText className="w-16 h-16 text-blue-600 mx-auto mb-4" />
@@ -399,7 +400,7 @@ const ApartmentSignatureApp = () => {
   // Admin View
   if (view === 'admin') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4" dir="rtl">
+      <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50 p-4" dir="rtl">
         <div className="max-w-6xl mx-auto">
           <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
             <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
@@ -618,7 +619,7 @@ const ApartmentSignatureApp = () => {
 
   // Sign View
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50 p-4" dir="rtl">
       <div className="max-w-5xl mx-auto">
         <div className="bg-white rounded-xl shadow-xl overflow-hidden">
           {/* Header */}
@@ -824,3 +825,4 @@ const ApartmentSignatureApp = () => {
 
 
 export default ApartmentSignatureApp;
+
