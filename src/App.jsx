@@ -708,7 +708,10 @@ const ApartmentSignatureApp = () => {
                   תאריך <span className="text-red-600 text-lg">*</span>
                 </label>
                 <input
-                  type="date"
+                type="text"
+                                placeholder="DD/MM/YYYY"
+                                                pattern="\d{2}/\d{2}/\d{4}"
+                                                                maxLength="10"
                   value={date}
                   onChange={e => setDate(e.target.value)}
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg"
