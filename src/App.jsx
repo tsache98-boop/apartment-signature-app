@@ -349,7 +349,15 @@ const ApartmentSignatureApp = () => {
     a.download = `מסמך_חתום_עוזיאל_${new Date().toISOString().split('T')[0]}.html`;
     a.click();
     URL.revokeObjectURL(url);
-    alert('✅ המסמך הורד!\n\nניתן לפתוח בדפדפן ולשמור כ-PDF');
+    
+    // Download PDF if it exists
+    if (pdfData) {
+      const pdfLink = document.createElement('a');
+      pdfLink.href = pdfData;
+      pdfLink.download = `מסמך_מקורי_${new Date().toISOString().split('T')[0]}.pdf`;
+      pdfLink.click();
+    }
+        alert(pdfData ? 'המסמכים ירדו בהצלחה! ניתן למצוא אותם בתיקיית ההורדות ✅ \n\nPDF-ה וטבלת חתימות [יחד]' : 'המסמך ירד בהצלחה! ✅ \n\nטבלת חתימות בדפדפך ולשמור ב-PDF');
   };
 
   const clearNotifications = async () => {
@@ -825,4 +833,5 @@ const ApartmentSignatureApp = () => {
 
 
 export default ApartmentSignatureApp;
+
 
