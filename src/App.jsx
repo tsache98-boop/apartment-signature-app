@@ -66,6 +66,7 @@ const ApartmentSignatureApp = () => {
           } catch (e) {}
         }
       }
+            setSignatures(sigs);
 
       }
     } catch (error) {}
