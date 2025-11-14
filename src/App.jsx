@@ -819,7 +819,7 @@ const downloadFinal = async () => {
                     style={{ touchAction: 'none', cursor: 'crosshair' }}
                     onMouseDown={startDraw}
                     onMouseMove={doDraw}
-                    onMouseUp={endDraw"
+                    onMouseUp={endDraw}
                     onMouseLeave={endDraw}
                     onTouchStart={startDraw}
                     onTouchMove={doDraw}
@@ -865,6 +865,7 @@ const downloadFinal = async () => {
 
 
 export default ApartmentSignatureApp;
+
 
 
 
