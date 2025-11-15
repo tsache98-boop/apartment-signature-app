@@ -48,13 +48,21 @@ const ApartmentSignatureApp = () => {
   const checkAdminStatus = () => {
     const savedAdmin = sessionStorage.getItem('isAdmin');
     if (savedAdmin === 'true') {
-      setIsAdmin(true);
-      setView('admin');
+FileReader
+  setView('admin');
     }
   };
 
   const loadData = async () => {
     try {
+          // קודם כל נבדוק אם יש PDF ב-URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const pdfFromUrl = urlParams.get('pdf');
+    if (pdfFromUrl) {
+      setPdfData(pdfFromUrl);
+      localStorage.setItem('uploaded-pdf', pdfFromUrl);
+    }
+
       const sigs = [];
       // Get all keys from localStorage that start with 'apartment:'
       for (let i = 0; i < localStorage.length; i++) {
@@ -144,6 +152,10 @@ const ApartmentSignatureApp = () => {
         console.log('שומר ל-storage...');
         localStorage.setItem('uploaded-pdf', base64Data);
         setPdfData(base64Data);
+                // גם נשמור ב-URL כדי שכולם יוכלו לראות
+        const url = new URL(window.location);
+        url.searchParams.set('pdf', base64Data);
+        window.history.pushState({}, '', url);
         console.log('PDF נשמר!');
         alert('✅ הקובץ הועלה בהצלחה!\n\nכעת כל מי שיפתח לינק לחתימה יראה את המסמך.');
       } catch (error) {
@@ -878,6 +890,7 @@ const downloadFinal = async () => {
 
 
 export default ApartmentSignatureApp;
+
 
 
 
