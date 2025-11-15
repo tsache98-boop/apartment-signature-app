@@ -680,8 +680,8 @@ const downloadFinal = async () => {
 
   // Sign View
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50 p-4" dir="rtl">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50 p-4 overflow-x-hidden" dir="rtl">
+      <div className="w-full max-w-5xl mx-auto px-4">
         <div className="bg-white rounded-xl shadow-xl overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
@@ -878,6 +878,7 @@ const downloadFinal = async () => {
 
 
 export default ApartmentSignatureApp;
+
 
 
 
