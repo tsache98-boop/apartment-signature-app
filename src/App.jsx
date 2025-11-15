@@ -717,13 +717,6 @@ const downloadFinal = async () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-bold">3.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-bold">4.</span>
-                  
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-bold">5.</span>
                   <span>לחץ על הכפתור הירוק "שמור חתימה"</span>
                 </li>
               </ol>
@@ -864,6 +857,7 @@ const downloadFinal = async () => {
 
 
 export default ApartmentSignatureApp;
+
 
 
 
