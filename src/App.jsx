@@ -104,6 +104,20 @@ const ApartmentSignatureApp = () => {
     sessionStorage.removeItem('isAdmin');
   };
 
+      const clearAllSignatures = () => {
+    if (window.confirm('⚠️ האם אתה בטוח? זה ימחק את כל החתימות (0/32)')) {
+      for (let i = 1; i <= 32; i++) {
+        localStorage.removeItem(`apartment:${i}`);
+      }
+      localStorage.removeItem('notifications');
+      localStorage.removeItem('uploaded-pdf');
+      setSignatures([]);
+      setNotifications([]);
+      setPdfData(null);
+      alert('✅ המערכת אופסה ל-0/32!');
+    }
+  };
+
   const processFile = async (file) => {
     console.log('Processing file:', file.name, file.type, file.size);
 
@@ -476,6 +490,13 @@ const downloadFinal = async () => {
                     הורד מסמך
                   </button>
                 )}
+            <button
+              onClick={clearAllSignatures}
+              className="flex items-center gap-2 bg-red-700 text-white px-4 py-2 rounded-lg hover:bg-red-800 transition-colors"
+            >
+              <X className="w-5 h-5" />
+              איפוס כל החתימות (0/32)
+            </button>
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
@@ -857,6 +878,7 @@ const downloadFinal = async () => {
 
 
 export default ApartmentSignatureApp;
+
 
 
 
