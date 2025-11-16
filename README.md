@@ -39,6 +39,17 @@ npm run dev
 npm run build
 ```
 
+## 🌐 פריסה ל-GitHub Pages
+
+הפרויקט כבר כולל קובץ Workflow שמבצע Build ופריסה אוטומטית ל-GitHub Pages בכל דחיפה ל-main.
+
+1. ודא שקובץ ה-PDF (`form.pdf`) יושב בתיקיית `public/` ברפוזיטורי לפני ה-Push.
+2. ב-GitHub, עבור ל-**Settings → Pages** ובחר את הסביבה `GitHub Pages` (ה-Workflow ייצור אותה אוטומטית בהרצה הראשונה).
+3. כל Push ל-main יפעיל את הקובץ `.github/workflows/deploy.yml`, יבנה את האפליקציה עם בסיס נתיב מותאם (`/${repo}/`) ויפרסם את התוכן ל-`gh-pages`.
+4. קבל את ה-URL מתוך ה-Logs או מ-Settings → Pages, לדוגמה: `https://<user>.github.io/<repo>/`.
+
+> אם אתה מעתיק את הפרויקט לרפוזיטורי אחר, אין צורך בשינויים ידניים – ה-Workflow מייצר בעצמו את בסיס הנתיב המתאים לפי שם הרפוזיטורי.
+
 ## 📁 מבנה הפרויקט
 
 ```

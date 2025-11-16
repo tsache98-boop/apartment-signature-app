@@ -45,7 +45,7 @@ const RESIDENTS = [
 ];
 
 const STORAGE_KEY = "apartment_signatures_v2";
-const FORM_PDF_PATH = "/form.pdf"; // שים את הקובץ בתיקיית public בשם הזה
+const FORM_PDF_PATH = `${import.meta.env.BASE_URL || "/"}form.pdf`; // שים את הקובץ בתיקיית public בשם הזה
 
 // ====== עזר ======
 
