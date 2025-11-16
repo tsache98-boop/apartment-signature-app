@@ -837,8 +837,8 @@ const downloadFinal = async () => {
                 <div className="border-4 border-blue-500 rounded-xl bg-white shadow-lg overflow-hidden">
                   <canvas
                     ref={canvasRef}
-                    width={1200}
-                    height={300}
+                    width={600}
+                    height={600}
                     className="w-full touch-none border-4 border-gray-800 bg-white rounded-lg shadow-md"
                     style={{ touchAction: 'none', cursor: 'crosshair' }}
                     onMouseDown={startDraw}
@@ -890,6 +890,7 @@ const downloadFinal = async () => {
 
 
 export default ApartmentSignatureApp;
+
 
 
 
