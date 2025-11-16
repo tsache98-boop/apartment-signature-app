@@ -331,7 +331,10 @@ const downloadFinal = async () => {
 
     try {
       // Load the original PDF
-      const pdfDoc = await PDFDocument.load(pdfData);
+      // Convert base64 data URL to ArrayBuffer
+      const base64Response = await fetch(pdfData);
+      const pdfBytes = await base64Response.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(pdfBytes);
       
       // Add a new page for signatures
       const page = pdfDoc.addPage();
@@ -890,6 +893,7 @@ const downloadFinal = async () => {
 
 
 export default ApartmentSignatureApp;
+
 
 
 
