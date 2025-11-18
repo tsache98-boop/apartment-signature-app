@@ -514,7 +514,7 @@ export default function App() {
                       type="text"
                       value={fullName}
                       readOnly
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm"
+                      className="w-full rounded-xl border border-2 border-blue-500 bg-slate-50 px-3 py-2 text-sm"
                     />
                   </div>
 
@@ -526,7 +526,7 @@ export default function App() {
                       type="text"
                       value={formatHebDate(dateISO)}
                       readOnly
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm"
+                      className="w-full rounded-xl border border-2 border-blue-500 bg-slate-50 px-3 py-2 text-sm"
                     />
                   </div>
 
@@ -534,13 +534,13 @@ export default function App() {
                     <label className="block text-xs text-slate-500 mb-2">
                       חתימה (מתאים לנייד – אפשר עם אצבע)
                     </label>
-                    <div className="border border-slate-200 rounded-2xl bg-slate-50 p-2">
+                    <div className="border border-2 border-blue-500 rounded-2xl bg-slate-50 p-2">
                       <SignaturePad
                         ref={sigPadRef}
                         penColor="black"
                         canvasProps={{
-                          width: 500,
-                          height: 180,
+                          width: 350,
+                          height: 120,
                           className:
                             "w-full h-44 md:h-48 rounded-2xl bg-white touch-none",
                         }}
@@ -590,7 +590,7 @@ export default function App() {
                   / {RESIDENTS.length}
                 </div>
 
-                <div className="mt-3 border rounded-2xl border-slate-200 max-h-80 overflow-auto text-sm">
+                <div className="mt-3 border rounded-2xl  max-h-80 overflow-auto text-sm">
                   <table className="w-full text-right text-xs">
                     <thead className="bg-slate-50 sticky top-0">
                       <tr>
