@@ -486,6 +486,16 @@ export default function App() {
             <h2 className="text-lg font-medium text-slate-800 mb-1">
               הצגת הטופס (PDF)
             </h2>
+                      {/* הצגה מוטמעת של PDF */}
+                      <div className="w-full rounded-xl overflow-hidden border-2 border-teal-400 shadow-md bg-gray-50 mb-3">
+                                    <iframe
+                                                    src={FORM_PDF_PATH}
+                                                    className="w-full h-[350px] sm:h-[450px] md:h-[550px]"
+                                                    title="טופס לחתימה"
+                                                    style={{ border: 'none' }}
+                                                  />
+                                  </div>
+            
             <p className="text-xs text-slate-500 mb-2">
               לצפייה מלאה במסמך לחץ על הקישור. החתימות יתווספו למסמך מאוחד
               שתוריד כמנהל.
