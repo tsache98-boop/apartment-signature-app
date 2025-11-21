@@ -488,10 +488,15 @@ export default function App() {
             </h2>
                       {/* הצגה מוטמעת של PDF */}
                       <div className="w-full rounded-xl overflow-hidden border-2 border-teal-400 shadow-md bg-gray-50 mb-3">
-                                                                                                  <embed
-            src="/form.pdf"
-            type="application/pdf"
-            className="w-full h-[350px] sm:h-[450px] md:h-[550px]"
+                                                                                                  <iframe
+                src="/form.pdf"
+                className="w-full h-[350px] sm:h-[450px] md:h-[550px] border-2 border-teal-400"
+                title="PDF הצגת הטופס"
+              >
+                <p className="p-4 text-center">
+                  הדפדפן שלך אינו תומך בהצגת PDF. <a href="/form.pdf" target="_blank" rel="noopener noreferrer" className="text-teal-600 hover:underline">לחץ כאן לפתיחה בחלון חדש</a>
+                </p>
+              </iframe>
           />
         </div>
             <p className="text-xs text-slate-500 mb-2">
