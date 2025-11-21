@@ -488,15 +488,18 @@ export default function App() {
             </h2>
                       {/* הצגה מוטמעת של PDF */}
                       <div className="w-full rounded-xl overflow-hidden border-2 border-teal-400 shadow-md bg-gray-50 mb-3">
-                                                                                                  <iframe
-                src="/form.pdf"
-                className="w-full h-[350px] sm:h-[450px] md:h-[550px] border-2 border-teal-400"
-                title="PDF הצגת הטופס"
+                                                                                                  <a
+                href="/form.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full py-8 text-center bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-bold text-xl rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
               >
-                <p className="p-4 text-center">
-                  הדפדפן שלך אינו תומך בהצגת PDF. <a href="/form.pdf" target="_blank" rel="noopener noreferrer" className="text-teal-600 hover:underline">לחץ כאן לפתיחה בחלון חדש</a>
-                </p>
-              </iframe>
+                <svg className="w-16 h-16 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span className="block text-2xl mb-2">לחץ לצפייה בטופס (PDF)</span>
+                <span className="block text-sm opacity-90">הטופס ייפתח בחלון חדש</span>
+              </a>
           />
         </div>
             <p className="text-xs text-slate-500 mb-2">
