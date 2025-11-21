@@ -488,8 +488,7 @@ export default function App() {
             </h2>
                       {/* הצגה מוטמעת של PDF */}
                       <div className="w-full rounded-xl overflow-hidden border-2 border-teal-400 shadow-md bg-gray-50 mb-3">
-                                    <iframe
-                                                              <embed
+                                                                                                  <embed
             src="/form.pdf"
             type="application/pdf"
             className="w-full h-[350px] sm:h-[450px] md:h-[550px]"
