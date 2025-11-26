@@ -83,12 +83,18 @@ function saveSignaturesToStorage(data) {
 }
 
 async function dataUrlToUint8Array(dataUrl) {
-  const res = await fetch(dataUrl);
-  const buf = await res.arrayBuffer();
-  return new Uint8Array(buf);
-}
-
-function createTrimmedCanvas(canvas) {
+  // המרה ישירה של Data URL ל-Uint8Array
+  const base64String = dataUrl.split(',')[1];
+  if (!base64String) {
+    throw new Error('Invalid data URL format');
+  }
+  const binaryString = atob(base64String);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}function createTrimmedCanvas(canvas) {
   const { width, height } = canvas;
   const ctx = canvas.getContext("2d");
   const imageData = ctx.getImageData(0, 0, width, height);
