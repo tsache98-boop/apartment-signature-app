@@ -37,7 +37,7 @@ const App = () => {
     setIsGeneratingPdf(true);
     try {
       const pdfDoc = await PDFDocument.create();
-      const font = await pdfDoc.embedFont(StandardFonts.Courier);
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       const page = pdfDoc.addPage([595, 842]);
       const { height } = page.getSize();
       let y = height - 50;
@@ -81,14 +81,14 @@ const App = () => {
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial', textAlign: 'right', maxWidth: '800px', margin: '0 auto' }}>
       <h1>מערכת חתימות דיגיטלית</h1>
-      <h3>רחבת הרב עוזיאל 14-4</h3>
-      <h2>תושב {currentResidentId + 1}: {RESIDENTS[currentResidentId]}</h2>
+      <h2>רחבת הרב עוזיאל 14-4</h2>
+      <p>תושב {currentResidentId + 1}: {RESIDENTS[currentResidentId]}</p>
       <button onClick={() => setCurrentResidentId((currentResidentId + 1) % RESIDENTS.length)} style={{ padding: '10px 20px', fontSize: '16px', marginBottom: '20px' }}>▶ הבא</button>
-      <div style={{ marginBottom: '20px', fontSize: '14px' }}>חתימות: {Object.keys(signatures).length} / {RESIDENTS.length}</div>
+      <p style={{ marginBottom: '20px', fontSize: '14px' }}>חתימות: {Object.keys(signatures).length} / {RESIDENTS.length}</p>
       <button onClick={handleDownloadCombinedPdf} disabled={isGeneratingPdf} style={{ padding: '10px 20px', fontSize: '16px', backgroundColor: '#4CAF50', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px' }}>
         {isGeneratingPdf ? '...מכין' : 'הורדת PDF'}
       </button>
-      {statusMessage && <p style={{ marginTop: '20px', color: statusMessage.includes('✓') ? 'green' : 'red', fontSize: '16px' }}>{statusMessage}</p>}
+      {statusMessage && <div style={{ marginTop: '20px', color: statusMessage.includes('✓') ? 'green' : 'red', fontSize: '16px' }}>{statusMessage}</div>}
     </div>
   );
 };
