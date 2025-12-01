@@ -456,6 +456,7 @@ export default function App() {
             if (!finalBytes || finalBytes.length === 0) {
               throw new Error('PDF generation resulted in empty data');
             }
+  console.log('finalBytes type:', typeof finalBytes, 'is Uint8Array:', finalBytes instanceof Uint8Array, 'length:', finalBytes?.length);
       const blob = new Blob([finalBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
                   if (!url) throw new Error('Failed to create download URL');
