@@ -471,7 +471,7 @@ export default function App() {
       setStatusMessage("המסמך המאוחד נוצר והורד בהצלחה.");
     } catch (err) {
       console.error(err);
-      setStatusMessage("אירעה שגיאה ביצירת המסמך המאוחד. בדוק את הקונסול.");
+      setStatusMessage("אירעה שגיאה ביצירת שגיאה בהורדת PDF: ${err?.message || err} ${JSON.stringify(err)} המאוחד. בדוק את הקונסול.");
     } finally {
       setIsGeneratingPdf(false);
     }
