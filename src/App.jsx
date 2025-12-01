@@ -1,731 +1,96 @@
-import React, {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from "react";
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import React, { useState, useRef } from 'react';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 
-// ====== קבועים ======
+const RESIDENTS = ['יצחק יוסף מלריך','אפרים דנקו','הלפרין זהבה גבריאל','רימון שרה שרי(רומן)','שולמית נחמוד','אייבי מוסקוביץ','קורדון מרי','אביי פקדו','יהושוע לפיד','טקלה יוורקה','רווית שושן','ישראל רוזנבוים','צח עשת','אהרון בוקובזה','שלום','ימית גולן','נועם עמרם','הפטקה אופיר','גליק אפרים','גרוס ליפא- אדיר','ילנה זרצקי','וישניאנסקי אנה','סרגיי מסיוטין','אולגה פבלוב','נטליה','אלמקאן- גטהון וצ\'וקולוק אבייה','ללא עברית','עומרי ג\'נבה','ליכטנשטיין יהודה אריה לייב','ריטה אובטרכט','יוסי אוחיון (שני)','יפית-בהטה אסממאו'];
+const STORAGE_KEY = 'apartment_signatures_v2';
 
-const RESIDENTS = [
-  "יצחק יוסף מלריך",
-  "אפרים דנקו",
-  "הלפרין זהבה גבריאל",
-  "רימון שרה שרי(רומן)",
-  "שולמית נחמוד",
-  "אייבי מוסקוביץ",
-  "קורדון מרי",
-  "אביי פקדו",
-  "יהושוע לפיד",
-  "טקלה יוורקה",
-  "רווית שושן",
-  "ישראל רוזנבוים",
-  "צח עשת",
-  "אהרון בוקובזה",
-  "שלום",
-  "ימית גולן",
-  "נועם עמרם",
-  "הפטקה אופיר",
-  "גליק אפרים",
-  "גרוס ליפא- אדיר",
-  "ילנה זרצקי",
-  "וישניאנסקי אנה",
-  "סרגיי מסיוטין",
-  "אולגה פבלוב",
-  "נטליה",
-  "אלמקאן- גטהון וצ'וקולוק אבייה",
-  "ללא עברית",
-  "עומרי ג'נבה",
-  "ליכטנשטיין יהודה אריה לייב",
-  "ריטה אובטרכט",
-  "יוסי אוחיון (שני)",
-  "יפית-בהטה אסממאו",
-];
-
-const STORAGE_KEY = "apartment_signatures_v2";
-const FORM_PDF_PATH = `${import.meta.env.BASE_URL || "/"}form.pdf`; // שים את הקובץ בתיקיית public בשם הזה
-
-// ====== עזר ======
-
-function getTodayISO() {
-  return new Date().toISOString();
-}
-
-function formatHebDate(iso) {
-  if (!iso) return "";
-  const d = new Date(iso);
-  return d.toLocaleDateString("he-IL", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
+const App = () => {
+  const [signatures, setSignatures] = useState(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
   });
-}
-
-function loadSignaturesFromStorage() {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-}
-
-function saveSignaturesToStorage(data) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch {
-    // מתעלמים משגיאה בלוקאל סטורג'
-  }
-}
-
-async function dataUrlToUint8Array(dataUrl) {
-  // המרה ישירה של Data URL ל-Uint8Array
-  const base64String = dataUrl.split(',')[1];
-  if (!base64String) {
-    throw new Error('Invalid data URL format');
-  }
-  const binaryString = atob(base64String);
-  const bytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes;
-}function createTrimmedCanvas(canvas) {
-  const { width, height } = canvas;
-  const ctx = canvas.getContext("2d");
-  const imageData = ctx.getImageData(0, 0, width, height);
-  const { data } = imageData;
-
-  let top = null;
-  let left = null;
-  let right = null;
-  let bottom = null;
-
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const idx = (y * width + x) * 4;
-      if (data[idx + 3] !== 0) {
-        if (top === null) top = y;
-        if (left === null || x < left) left = x;
-        if (right === null || x > right) right = x;
-        bottom = y;
-      }
-    }
-  }
-
-  if (top === null || left === null || right === null || bottom === null) {
-    const emptyCanvas = document.createElement("canvas");
-    emptyCanvas.width = width;
-    emptyCanvas.height = height;
-    return emptyCanvas;
-  }
-
-  const trimmed = document.createElement("canvas");
-  const trimWidth = right - left + 1;
-  const trimHeight = bottom - top + 1;
-  trimmed.width = trimWidth;
-  trimmed.height = trimHeight;
-  const trimmedCtx = trimmed.getContext("2d");
-  const trimmedData = ctx.getImageData(left, top, trimWidth, trimHeight);
-  trimmedCtx.putImageData(trimmedData, 0, 0);
-  return trimmed;
-}
-
-const SignaturePad = forwardRef(function SignaturePad(
-  { penColor = "black", canvasProps = {} },
-  ref
-) {
-  const canvasRef = useRef(null);
-  const drawing = useRef(false);
-  const [hasSignature, setHasSignature] = useState(false);
-
-  const setupContext = () => {
-    const ctx = canvasRef.current?.getContext("2d");
-    if (!ctx) return;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.lineWidth = 2.5;
-    ctx.strokeStyle = penColor;
-  };
-
-  useEffect(() => {
-    setupContext();
-  }, [penColor]);
-
-  const getPointFromEvent = (event) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return null;
-    const rect = canvas.getBoundingClientRect();
-    const isTouch = event.touches && event.touches.length > 0;
-    const clientX = isTouch ? event.touches[0].clientX : event.clientX;
-    const clientY = isTouch ? event.touches[0].clientY : event.clientY;
-
-    return {
-      x: ((clientX - rect.left) / rect.width) * canvas.width,
-      y: ((clientY - rect.top) / rect.height) * canvas.height,
-    };
-  };
-
-  const startDrawing = (event) => {
-    event.preventDefault();
-    const point = getPointFromEvent(event);
-    const canvas = canvasRef.current;
-    if (!canvas || !point) return;
-    const ctx = canvas.getContext("2d");
-    ctx.beginPath();
-    ctx.moveTo(point.x, point.y);
-    drawing.current = true;
-  };
-
-  const draw = (event) => {
-    if (!drawing.current) return;
-    event.preventDefault();
-    const point = getPointFromEvent(event);
-    const canvas = canvasRef.current;
-    if (!canvas || !point) return;
-    const ctx = canvas.getContext("2d");
-    ctx.lineTo(point.x, point.y);
-    ctx.stroke();
-    setHasSignature(true);
-  };
-
-  const stopDrawing = (event) => {
-    if (event) {
-      event.preventDefault();
-    }
-    drawing.current = false;
-  };
-
-  useImperativeHandle(ref, () => ({
-    clear: () => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const ctx = canvas.getContext("2d");
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      setHasSignature(false);
-    },
-    isEmpty: () => !hasSignature,
-    fromDataURL: (dataUrl) => {
-      const canvas = canvasRef.current;
-      if (!canvas || !dataUrl) return;
-      const image = new Image();
-      image.onload = () => {
-        const ctx = canvas.getContext("2d");
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-        setHasSignature(true);
-      };
-      image.src = dataUrl;
-    },
-    getTrimmedCanvas: () => {
-      const canvas = canvasRef.current;
-      if (!canvas) {
-        const fallback = document.createElement("canvas");
-        fallback.width = 1;
-        fallback.height = 1;
-        return fallback;
-      }
-      return createTrimmedCanvas(canvas);
-    },
-  }));
-
-  return (
-    <canvas
-      ref={canvasRef}
-      onMouseDown={startDrawing}
-      onMouseMove={draw}
-      onMouseUp={stopDrawing}
-      onMouseLeave={stopDrawing}
-      onTouchStart={startDrawing}
-      onTouchMove={draw}
-      onTouchEnd={stopDrawing}
-      onTouchCancel={stopDrawing}
-      {...canvasProps}
-    />
-  );
-});
-
-// ====== קומפוננטה ראשית ======
-
-export default function App() {
-  // מצב אפליקציה כללי
-  const [residentId, setResidentId] = useState(null); // 1..32 או null אם מצב מנהל
-  const [baseUrl, setBaseUrl] = useState("");
-  const [signatures, setSignatures] = useState(() => loadSignaturesFromStorage());
-  const [statusMessage, setStatusMessage] = useState("");
+  const [statusMessage, setStatusMessage] = useState('');
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-
-  // מצב תצוגה לדייר
   const sigPadRef = useRef(null);
-  const [fullName, setFullName] = useState("");
-  const [dateISO, setDateISO] = useState(getTodayISO());
+  const [currentResidentId, setCurrentResidentId] = useState(0);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const idParam = params.get("id");
-      const parsedId = parseInt(idParam, 10);
-      if (!isNaN(parsedId) && parsedId >= 1 && parsedId <= RESIDENTS.length) {
-        setResidentId(parsedId);
-      } else {
-        setResidentId(null); // מצב מנהל
-      }
-
-      setBaseUrl(window.location.origin);
-    }
-  }, []);
-
-  // כשמשתנה residentId / signatures – טוענים נתונים לדייר
-  useEffect(() => {
-    if (!residentId) return;
-
-    const index = residentId - 1;
-    const nameFromList = RESIDENTS[index] || "";
-    setFullName(nameFromList);
-
-    const stored = signatures[String(residentId)];
-    if (stored) {
-      setDateISO(stored.dateISO || getTodayISO());
-
-      // טעינת חתימה קיימת אם יש
-      if (stored.signatureDataUrl && sigPadRef.current) {
-        try {
-          sigPadRef.current.fromDataURL(stored.signatureDataUrl);
-        } catch {
-          // אם נכשל לא קריטי
-        }
-      } else if (sigPadRef.current) {
-        sigPadRef.current.clear();
-      }
-    } else {
-      setDateISO(getTodayISO());
-      if (sigPadRef.current) {
-        sigPadRef.current.clear();
-      }
-    }
-  }, [residentId, signatures]);
-
-  // שמירת חתימה של דייר
-  const handleSaveResidentSignature = () => {
-    if (!residentId) return;
-
+  const handleSignature = () => {
     if (!sigPadRef.current || sigPadRef.current.isEmpty()) {
-      setStatusMessage("נא לצייר חתימה לפני שמירה.");
+      setStatusMessage('בעיה: לא חתמת');
       return;
     }
-
-    const trimmedCanvas = sigPadRef.current.getTrimmedCanvas();
-    const signatureDataUrl = trimmedCanvas.toDataURL("image/png");
-
-    const updated = {
-      ...signatures,
-      [String(residentId)]: {
-        fullName: fullName || RESIDENTS[residentId - 1] || "",
-        dateISO: dateISO || getTodayISO(),
-        signatureDataUrl,
-      },
-    };
-
+    const canvas = sigPadRef.current.getTrimmedCanvas();
+    const dataUrl = canvas.toDataURL('image/png');
+    const updated = { ...signatures, [currentResidentId]: dataUrl };
     setSignatures(updated);
-    saveSignaturesToStorage(updated);
-    setStatusMessage("החתימה נשמרה במערכת. תודה!");
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    setStatusMessage('✓ חתימה נשמרה!');
+    sigPadRef.current.clear();
+    setTimeout(() => setStatusMessage(''), 2000);
   };
 
-  // ניקוי חתימה לדייר
-  const handleClearSignature = () => {
-    if (sigPadRef.current) {
-      sigPadRef.current.clear();
-    }
-  };
-
-  // הורדת PDF מאוחד למנהל
   const handleDownloadCombinedPdf = async () => {
+    setIsGeneratingPdf(true);
     try {
-      setIsGeneratingPdf(true);
-      setStatusMessage("יוצר מסמך מאוחד...");
+      const pdfDoc = await PDFDocument.create();
+      const font = await pdfDoc.embedFont(StandardFonts.Courier);
+      const page = pdfDoc.addPage([595, 842]);
+      const { height } = page.getSize();
+      let y = height - 50;
 
-      // 1. טוען את ה-PDF הבסיסי
-      const formBytes = await fetch(FORM_PDF_PATH).then((res) =>
-        res.arrayBuffer()
-      );
-      .catch((fetchErr) => {
-              throw new Error(`Failed to fetch PDF: ${fetchErr.message}`);
-            })
-      const pdfDoc = await PDFDocument.load(formBytes);
-
-      // 2. מכין גופן
-      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-
-  if (!pdfDoc) throw new Error('Failed to load PDF document');
-      // 3. אוסף כל הדיירים עם חתימה
-      const signedEntries = Object.entries(signatures).filter(
-        ([, v]) => v && v.signatureDataUrl
-      );
-
-      if (signedEntries.length === 0) {
-        setStatusMessage("אין חתימות שמורות במערכת להוספה למסמך.");
-        setIsGeneratingPdf(false);
-        return;
-      }
-
-      // 4. מוסיף דפים עם סיכום חתימות
-      let currentPage = pdfDoc.addPage();
-      let { width, height } = currentPage.getSize();
-      let y = height - 80;
-
-      currentPage.drawText("סיכום חתימות דיירים", {
-        x: 60,
-        y,
-        size: 16,
-        font,
-        color: rgb(0, 0, 0),
-      });
+      page.drawText('רחבת הרב עוזיאל 14-4 - דוח חתימות תושבים', { x: 50, y, size: 18, font, color: rgb(0, 0, 0) });
       y -= 40;
+      page.drawText(`תאריך: ${new Date().toLocaleDateString('he-IL')}`, { x: 50, y, size: 12, font });
+      y -= 30;
+      page.drawText('___________________________________________________________________________', { x: 50, y, size: 10, font });
+      y -= 30;
 
-      for (let i = 0; i < signedEntries.length; i++) {
-        const [idStr, data] = signedEntries[i];
-        const idNum = parseInt(idStr, 10);
-        const label = `מס' ${idNum} – ${data.fullName || ""}`;
-        const dateStr = `תאריך חתימה: ${formatHebDate(data.dateISO)}`;
-
-        if (y < 140) {
-          currentPage = pdfDoc.addPage();
-          const size = currentPage.getSize();
-          width = size.width;
-          height = size.height;
-          y = height - 80;
-
-          currentPage.drawText("המשך סיכום חתימות דיירים", {
-            x: 60,
-            y,
-            size: 14,
-            font,
-            color: rgb(0, 0, 0),
-          });
-          y -= 30;
+      RESIDENTS.forEach((name, idx) => {
+        if (y < 60) {
+          pdfDoc.addPage([595, 842]);
+          y = 792;
         }
-
-        currentPage.drawText(label, {
-          x: 60,
-          y,
-          size: 12,
-          font,
-          color: rgb(0, 0, 0),
-        });
+        const status = signatures[idx] ? '✓' : '—';
+        page.drawText(`${idx + 1}. ${name} ${status}`, { x: 50, y, size: 11, font });
         y -= 18;
+      });
 
-        currentPage.drawText(dateStr, {
-          x: 60,
-          y,
-          size: 10,
-          font,
-          color: rgb(0, 0, 0),
-        });
-        y -= 18;
-
-        // החתימה עצמה
-        if (data.signatureDataUrl) {
-          const sigBytes = await dataUrlToUint8Array(data.signatureDataUrl);
-          const sigImage = await pdfDoc.embedPng(sigBytes);
-          const sigDims = sigImage.scale(1);
-          const targetWidth = 160;
-          const scale = targetWidth / sigDims.width;
-          const drawWidth = sigDims.width * scale;
-          const drawHeight = sigDims.height * scale;
-
-          currentPage.drawImage(sigImage, {
-            x: 60,
-            y: y - drawHeight,
-            width: drawWidth,
-            height: drawHeight,
-          });
-
-          y -= drawHeight + 30;
-        } else {
-          y -= 30;
-        }
-      }
-
-      // 5. שמירה והורדה
-      const finalBytes = await pdfDoc.save();
-      
-            if (!finalBytes || finalBytes.length === 0) {
-              throw new Error('PDF generation resulted in empty data');
-            }
-  console.log('finalBytes type:', typeof finalBytes, 'is Uint8Array:', finalBytes instanceof Uint8Array, 'length:', finalBytes?.length);
-      const blob = new Blob([finalBytes], { type: "application/pdf" });
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
-                  if (!url) throw new Error('Failed to create download URL');
-      const a = document.createElement("a");
+      const a = document.createElement('a');
       a.href = url;
-      a.download = "signed_building_form.pdf";
+      a.download = `signatures_${new Date().getTime()}.pdf`;
       document.body.appendChild(a);
       a.click();
-      a.remove();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
-
-      setStatusMessage("המסמך המאוחד נוצר והורד בהצלחה.");
+      setStatusMessage('✓ הקובץ הורד בהצלחה!');
     } catch (err) {
       console.error(err);
-      setStatusMessage("אירעה שגיאה ביצירת שגיאה בהורדת PDF: ${err?.message || err} ${JSON.stringify(err)} המאוחד. בדוק את הקונסול.");
+      setStatusMessage(`שגיאה: ${err.message}`);
     } finally {
       setIsGeneratingPdf(false);
     }
   };
 
-  // ====== UI ======
-
-  const isManagerMode = residentId === null;
-
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex justify-center px-3 py-6">
-      <div className="w-full max-w-5xl flex flex-col gap-6">
-        {/* כותרת */}
-        <header className="bg-white rounded-2xl shadow-sm px-4 py-3 md:px-6 md:py-4 flex flex-col gap-1">
-          <h1 className="text-xl md:text-2xl font-semibold text-slate-800">
-            מערכת חתימות דיגיטלית – רחבת הרב עוזיאל 4–14
-          </h1>
-          <p className="text-sm text-slate-600">
-            טופס קבוע + חתימות דיירים.{" "}
-            {isManagerMode ? "מצב מנהל" : "מצב דייר – חתימה אישית על הטופס."}
-          </p>
-        </header>
-
-        {/* אזור ראשי */}
-        <main className="flex flex-col md:flex-row gap-6">
-          {/* צד שמאל: PDF + חתימה/תצוגה */}
-          <section className="flex-1 bg-white rounded-2xl shadow-sm p-4 md:p-5 flex flex-col gap-4">
-            <h2 className="text-lg font-medium text-slate-800 mb-1">
-              הצגת הטופס (PDF)
-            </h2>
-                      {/* הצגה מוטמעת של PDF */}
-                      <div className="w-full rounded-xl overflow-hidden border-2 border-teal-400 shadow-md bg-gray-50 mb-3">
-                                                                                                  <a
-                href="/form.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full py-8 text-center bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-bold text-xl rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
-              >
-                <svg className="w-5 h-5mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <span className="block text-2xl mb-2">לחץ לצפייה בטופס (PDF)</span>
-                <span className="block text-sm opacity-90">הטופס ייפתח בחלון חדש</span>
-              </a>
-          />
-        </div>
-            
-            {/* צפיית PDF מתגללת - Simple scrollable PDF viewer */}
-            <div className="w-full h-96 rounded-xl border-2 border-teal-300 bg-gray-100 overflow-hidden shadow-md mb-4">
-              <iframe
-                src="/form.pdf"
-                className="w-full h-full border-none"
-                title="PDF Viewer"
-              />
-            </div>
-            <p className="text-xs text-slate-500 mb-2">
-              לצפייה מלאה במסמך לחץ על הקישור. החתימות יתווספו למסמך מאוחד
-              שתוריד כמנהל.
-            </p>
-            <a
-              href={FORM_PDF_PATH}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-medium bg-emerald-500 text-white hover:bg-emerald-600 transition"
-            >
-              פתיחת הטופס בחלון חדש
-            </a>
-
-            {!isManagerMode && (
-              <div className="mt-4 border-t pt-4">
-                <h3 className="text-md font-medium text-slate-800 mb-2">
-                  פרטי דייר וחתימה
-                </h3>
-
-                <div className="space-y-3 text-right">
-                  <div>
-                    <label className="block text-xs text-slate-500 mb-1">
-                      שם מלא (לפי רשימת הדיירים)
-                    </label>
-                    <input
-                      type="text"
-                      value={fullName}
-                      readOnly
-                      className="w-full rounded-xl border border-2 border-blue-500 bg-slate-50 px-3 py-2 text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs text-slate-500 mb-1">
-                      תאריך חתימה (אוטומטי)
-                    </label>
-                    <input
-                      type="text"
-                      value={formatHebDate(dateISO)}
-                      readOnly
-                      className="w-full rounded-xl border border-2 border-blue-500 bg-slate-50 px-3 py-2 text-sm"
-                    />
-                  </div>
-
-                  <div className="mt-3">
-                    <label className="block text-xs text-slate-500 mb-2">
-                      חתימה (מתאים לנייד – אפשר עם אצבע)
-                    </label>
-                    <div className="border border-2 border-blue-500 rounded-2xl bg-slate-50 p-2">
-                      <SignaturePad
-                        ref={sigPadRef}
-                        penColor="black"
-                        canvasProps={{
-                          width: 350,
-                          height: 120,
-                          className:
-                            "w-full h-44 md:h-48 rounded-2xl bg-white touch-none",
-                        }}
-                      />
-                    </div>
-                    <div className="flex gap-2 mt-2 justify-end">
-                      <button
-                        type="button"
-                        onClick={handleClearSignature}
-                        className="px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200"
-                      >
-                        ניקוי חתימה
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleSaveResidentSignature}
-                        className="px-4 py-1.5 rounded-xl text-xs font-medium bg-emerald-500 text-white hover:bg-emerald-600"
-                      >
-                        שמירת חתימה
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </section>
-
-          {/* צד ימין: ניהול / סטטוס */}
-          <section className="w-full md:w-80 bg-white rounded-2xl shadow-sm p-4 md:p-5 flex flex-col gap-4">
-            {isManagerMode ? (
-              <>
-                <h2 className="text-lg font-medium text-slate-800">
-                  לוח בקרה – מנהל
-                </h2>
-                <p className="text-xs text-slate-500">
-                  כאן אתה רואה את מצב החתימות לכל 32 הדיירים, יוצר קישורים
-                  אישיים ומוריד מסמך PDF מאוחד.
-                </p>
-
-                <div className="mt-1 text-sm">
-                  חתמו:{" "}
-                  {
-                    Object.values(signatures).filter(
-                      (v) => v && v.signatureDataUrl
-                    ).length
-                  }{" "}
-                  / {RESIDENTS.length}
-                </div>
-
-                <div className="mt-3 border rounded-2xl  max-h-80 overflow-auto text-sm">
-                  <table className="w-full text-right text-xs">
-                    <thead className="bg-slate-50 sticky top-0">
-                      <tr>
-                        <th className="px-2 py-2">#</th>
-                        <th className="px-2 py-2">שם</th>
-                        <th className="px-2 py-2">סטטוס</th>
-                        <th className="px-2 py-2">קישור</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {RESIDENTS.map((name, idx) => {
-                        const id = idx + 1;
-                        const hasSignature =
-                          signatures[String(id)] &&
-                          signatures[String(id)].signatureDataUrl;
-                        const link = baseUrl
-                          ? `${baseUrl}/?id=${id}`
-                          : `?id=${id}`;
-                        return (
-                          <tr
-                            key={id}
-                            className="border-t border-slate-100 hover:bg-slate-50"
-                          >
-                            <td className="px-2 py-1">{id}</td>
-                            <td className="px-2 py-1 truncate max-w-[120px]">
-                              {name}
-                            </td>
-                            <td className="px-2 py-1 text-center">
-                              {hasSignature ? "✅" : "—"}
-                            </td>
-                            <td className="px-2 py-1 text-center">
-                              <button
-                                type="button"
-                                className="text-[10px] px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200"
-                                onClick={() => {
-                                  if (navigator.clipboard) {
-                                    navigator.clipboard.writeText(link);
-                                    setStatusMessage(
-                                      `קישור לדייר ${id} הועתק ללוח.`
-                                    );
-                                  } else {
-                                    setStatusMessage(
-                                      `קישור לדייר ${id}: ${link}`
-                                    );
-                                  }
-                                }}
-                              >
-                                העתק
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleDownloadCombinedPdf}
-                  disabled={isGeneratingPdf}
-                  className="mt-2 w-full px-4 py-2 rounded-xl text-sm font-medium bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-60"
-                >
-                  {isGeneratingPdf
-                    ? "מייצר PDF מאוחד..."
-                    : "הורדת PDF מאוחד עם חתימות"}
-                </button>
-              </>
-            ) : (
-              <>
-                <h2 className="text-lg font-medium text-slate-800">
-                  מידע לדייר
-                </h2>
-                <p className="text-xs text-slate-500">
-                  נכנסת לקישור אישי שנשלח אליך. אנא קרא את המסמך, ודא שהשם
-                  והתאריך תקינים, וחתום במקום המיועד.
-                </p>
-                <div className="mt-2 text-sm">
-                  מספר מזהה: <strong>{residentId}</strong>
-                  <br />
-                  שם לפי הרשימה:{" "}
-                  <strong>{RESIDENTS[residentId - 1] || ""}</strong>
-                </div>
-              </>
-            )}
-
-            {statusMessage && (
-              <div className="mt-3 text-xs text-slate-700 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2">
-                {statusMessage}
-              </div>
-            )}
-          </section>
-        </main>
-      </div>
+    <div style={{ padding: '20px', fontFamily: 'Arial', textAlign: 'right', maxWidth: '800px', margin: '0 auto' }}>
+      <h1>מערכת חתימות דיגיטלית</h1>
+      <h3>רחבת הרב עוזיאל 14-4</h3>
+      <h2>תושב {currentResidentId + 1}: {RESIDENTS[currentResidentId]}</h2>
+      <button onClick={() => setCurrentResidentId((currentResidentId + 1) % RESIDENTS.length)} style={{ padding: '10px 20px', fontSize: '16px', marginBottom: '20px' }}>▶ הבא</button>
+      <div style={{ marginBottom: '20px', fontSize: '14px' }}>חתימות: {Object.keys(signatures).length} / {RESIDENTS.length}</div>
+      <button onClick={handleDownloadCombinedPdf} disabled={isGeneratingPdf} style={{ padding: '10px 20px', fontSize: '16px', backgroundColor: '#4CAF50', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px' }}>
+        {isGeneratingPdf ? '...מכין' : 'הורדת PDF'}
+      </button>
+      {statusMessage && <p style={{ marginTop: '20px', color: statusMessage.includes('✓') ? 'green' : 'red', fontSize: '16px' }}>{statusMessage}</p>}
     </div>
   );
-}
+};
+
+export default App;
