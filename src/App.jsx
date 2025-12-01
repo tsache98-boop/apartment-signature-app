@@ -352,11 +352,15 @@ export default function App() {
       const formBytes = await fetch(FORM_PDF_PATH).then((res) =>
         res.arrayBuffer()
       );
+      .catch((fetchErr) => {
+              throw new Error(`Failed to fetch PDF: ${fetchErr.message}`);
+            })
       const pdfDoc = await PDFDocument.load(formBytes);
 
       // 2. מכין גופן
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
+  if (!pdfDoc) throw new Error('Failed to load PDF document');
       // 3. אוסף כל הדיירים עם חתימה
       const signedEntries = Object.entries(signatures).filter(
         ([, v]) => v && v.signatureDataUrl
