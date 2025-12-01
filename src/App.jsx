@@ -448,8 +448,13 @@ export default function App() {
 
       // 5. שמירה והורדה
       const finalBytes = await pdfDoc.save();
+      
+            if (!finalBytes || finalBytes.length === 0) {
+              throw new Error('PDF generation resulted in empty data');
+            }
       const blob = new Blob([finalBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
+                  if (!url) throw new Error('Failed to create download URL');
       const a = document.createElement("a");
       a.href = url;
       a.download = "signed_building_form.pdf";
@@ -500,7 +505,7 @@ export default function App() {
                 rel="noopener noreferrer"
                 className="block w-full py-8 text-center bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-bold text-xl rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
               >
-                <svg className="w-16 h-16 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 <span className="block text-2xl mb-2">לחץ לצפייה בטופס (PDF)</span>
@@ -508,6 +513,15 @@ export default function App() {
               </a>
           />
         </div>
+            
+            {/* צפיית PDF מתגללת - Simple scrollable PDF viewer */}
+            <div className="w-full h-96 rounded-xl border-2 border-teal-300 bg-gray-100 overflow-hidden shadow-md mb-4">
+              <iframe
+                src="/form.pdf"
+                className="w-full h-full border-none"
+                title="PDF Viewer"
+              />
+            </div>
             <p className="text-xs text-slate-500 mb-2">
               לצפייה מלאה במסמך לחץ על הקישור. החתימות יתווספו למסמך מאוחד
               שתוריד כמנהל.
