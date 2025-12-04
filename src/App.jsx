@@ -16,7 +16,6 @@ const App = () => {
       return {};
     }
   });
-
   const [residentName, setResidentName] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -25,6 +24,9 @@ const App = () => {
 
   const handleMouseDown = () => setIsDrawing(true);
   const handleMouseUp = () => setIsDrawing(false);
+  
+  const handleTouchStart = () => setIsDrawing(true);
+  const handleTouchEnd = () => setIsDrawing(false);
 
   const handleMouseMove = (e) => {
     if (!isDrawing || !canvasRef.current) return;
@@ -37,17 +39,30 @@ const App = () => {
     ctx.stroke();
   };
 
+  const handleTouchMove = (e) => {
+    if (!isDrawing || !canvasRef.current) return;
+    e.preventDefault();
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  };
+
   const handleSignature = () => {
     if (!residentName.trim()) {
       setStatusMessage('בחר שם');
       return;
     }
     if (!canvasRef.current) return;
-
+    
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     const imageData = canvas.toDataURL('image/png');
-
+    
     const newSignatures = { ...signatures };
     newSignatures[currentResidentId] = {
       signature: imageData,
@@ -55,11 +70,14 @@ const App = () => {
     };
     setSignatures(newSignatures);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newSignatures));
-
+    
+    // Clear canvas for next resident
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.beginPath();
+    
     setResidentName('');
     setStatusMessage('');
-
+    
     if (currentResidentId < RESIDENTS.length - 1) {
       setCurrentResidentId(currentResidentId + 1);
     }
@@ -70,6 +88,7 @@ const App = () => {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.beginPath();
   };
 
   const handleNext = () => {
@@ -84,7 +103,6 @@ const App = () => {
     try {
       setIsGeneratingPdf(true);
       setStatusMessage('טוען...');
-
       const response = await fetch(PDF_PATH);
       const pdfBytes = await response.arrayBuffer();
       const pdfDoc = await PDFDocument.load(pdfBytes);
@@ -113,7 +131,6 @@ const App = () => {
       link.download = 'form_with_signatures.pdf';
       link.click();
       URL.revokeObjectURL(url);
-
       setStatusMessage('הורדה בוצעה בהצלחה');
     } catch (error) {
       console.error('PDF generation error:', error);
@@ -127,7 +144,7 @@ const App = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 4;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.strokeStyle = '#000';
@@ -150,7 +167,6 @@ const App = () => {
       <div style={{ marginBottom: '20px' }}>
         <span>חתימות: {Object.keys(signatures).length} / {RESIDENTS.length}</span>
       </div>
-
       <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
         <div style={{ flex: 1, paddingRight: '20px' }}>
           <h3>קובץ ה-PDF</h3>
@@ -163,7 +179,6 @@ const App = () => {
             }}
           />
         </div>
-
         <div style={{ flex: 1 }}>
           <h3>חתימה</h3>
           <input
@@ -186,25 +201,26 @@ const App = () => {
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
             onMouseMove={handleMouseMove}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            onTouchMove={handleTouchMove}
             style={{
               border: '2px solid #000',
               display: 'block',
               backgroundColor: '#fff',
               cursor: 'crosshair',
-              marginBottom: '10px'
+              marginBottom: '10px',
+              touchAction: 'none'
             }}
           />
-
           <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
             <button onClick={handleSignature} style={{ flex: 1, padding: '10px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>אישור חתימה</button>
             <button onClick={handleClear} style={{ flex: 1, padding: '10px', backgroundColor: '#FF9800', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>ניקוי</button>
             <button onClick={handleNext} style={{ flex: 1, padding: '10px', backgroundColor: '#2196F3', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>הבא</button>
           </div>
-
           {statusMessage && <p style={{ color: statusMessage.includes('שגיאה') ? 'red' : 'green', fontSize: '14px' }}>{statusMessage}</p>}
         </div>
       </div>
-
       <div style={{ textAlign: 'center', marginTop: '20px' }}>
         <button
           onClick={handleDownloadPdf}
