@@ -100,7 +100,7 @@ const App = () => {
     }
   };
 
-  return (
+  
     <div style={{ padding: '20px', fontFamily: 'Arial', textAlign: 'right', maxWidth: '800px', margin: '0 auto' }}>
       <h1>מערכת חתימות דיגיטלית</h1>
       <h2>רחבת הרב עוזיאל 14-4</h2>
