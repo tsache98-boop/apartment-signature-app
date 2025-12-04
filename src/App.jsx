@@ -1,7 +1,8 @@
-import React, { useState, useRef } from 'react';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import React, { useState, useRef, useEffect } from 'react';
+import { PDFDocument, rgb } from 'pdf-lib';
 
-const RESIDENTS = ['יצחק יוסף מלריך', 'אפרים דנקו', 'הלפרין זהבה גבריאל', 'רימון שרה שרי', 'שולמית נחמוד', 'אייבי מוסקוביץ', 'קורדון מרי', 'אביי פקדו', 'יהושוע לפיד', 'טקלה יוורקה', 'רווית שושן', 'ישראל רוזנבוים', 'צח עשת', 'אהרון בוקובזה', 'שלום', 'ימית גולן', 'נועם עמרם', 'הפטקה אופיר', 'גליק אפרים', 'גרוס ליפא', 'ילנה זרצקי', 'וישניאנסקי אנה', 'סרגיי מסיוטין', 'אולגה פבלוב', 'נטליה', 'אלמקאן גטהון', 'ללא עברית', 'עומרי גנבה', 'ליכטנשטיין יהודה', 'ריטה אובטרכט', 'יוסי אוחיון', 'יפית בהטה אסממאו'];
+const RESIDENTS = ['יצחק יוסף מלריך','אפרים דנקו','הלפרין זהבה גבריאל','רימון שרה שרי','שולמית נחמוד','אייבי מוסקוביץ','קורדון מרי','אביי פקדו','יהושוע לפיד','טקלה יוורקה','רווית שושן','ישראל רוזנבוים','צח עשת','אהרון בוקובזה','שלום','ימית גולן','נועם עמרם','הפטקה אופיר','גליק אפרים','גרוס ליפא','ילנה זרצקי','וישניאנסקי אנה','סרגיי מסיוטין','אולגה פבלוב','נטליה','אלמקאן גטהון','ללא עברית','עומרי גנבה','ליכטנשטיין יהודה','ריטה אובטרכט','יוסי אוחיון','יפית בהטה אסממאו'];
+
 const STORAGE_KEY = 'apartment_signatures_v2';
 const PDF_PATH = '/form.pdf';
 
@@ -15,6 +16,7 @@ const App = () => {
       return {};
     }
   });
+
   const [residentName, setResidentName] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -23,6 +25,7 @@ const App = () => {
 
   const handleMouseDown = () => setIsDrawing(true);
   const handleMouseUp = () => setIsDrawing(false);
+
   const handleMouseMove = (e) => {
     if (!isDrawing || !canvasRef.current) return;
     const canvas = canvasRef.current;
@@ -35,120 +38,130 @@ const App = () => {
   };
 
   const handleSignature = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const hasSignature = imageData.data.some((val, i) => i % 4 !== 3 && val !== 255);
-    
-    if (!hasSignature) {
-      setStatusMessage('בעיה: לא חתמת');
-      return;
-    }
     if (!residentName.trim()) {
-      setStatusMessage('בעיה: אנא הקלד את שמך');
+      setStatusMessage('בחר שם');
       return;
     }
-    
-    const dataUrl = canvas.toDataURL('image/png');
-    const updated = { ...signatures, [currentResidentId]: { signature: dataUrl, name: residentName } };
-    setSignatures(updated);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    setStatusMessage('חתימה נשמרה בהצלחה!');
-    
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = 'black';
-    ctx.lineWidth = 2;
+    if (!canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const imageData = canvas.toDataURL('image/png');
+
+    const newSignatures = { ...signatures };
+    newSignatures[currentResidentId] = {
+      signature: imageData,
+      name: residentName
+    };
+    setSignatures(newSignatures);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(newSignatures));
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     setResidentName('');
-    
-    setTimeout(() => setStatusMessage(''), 2000);
+    setStatusMessage('');
+
+    if (currentResidentId < RESIDENTS.length - 1) {
+      setCurrentResidentId(currentResidentId + 1);
+    }
   };
 
   const handleClear = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = 'black';
-    ctx.lineWidth = 2;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
   };
 
   const handleNext = () => {
-    setCurrentResidentId((currentResidentId + 1) % RESIDENTS.length);
-    handleClear();
-    setResidentName('');
+    if (currentResidentId < RESIDENTS.length - 1) {
+      setCurrentResidentId(currentResidentId + 1);
+      setResidentName('');
+      handleClear();
+    }
   };
 
   const handleDownloadPdf = async () => {
-    setIsGeneratingPdf(true);
     try {
+      setIsGeneratingPdf(true);
+      setStatusMessage('טוען...');
+
       const response = await fetch(PDF_PATH);
       const pdfBytes = await response.arrayBuffer();
       const pdfDoc = await PDFDocument.load(pdfBytes);
       const pages = pdfDoc.getPages();
-      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-      
-      let currentPageIndex = 0;
-      let currentY = 750;
-      
-      for (let i = 0; i < RESIDENTS.length; i++) {
-        if (currentPageIndex >= pages.length) break;
-        const page = pages[currentPageIndex];
-        const sigData = signatures[i];
-        
-        if (currentY < 100) {
-          currentPageIndex++;
-          currentY = 750;
-          if (currentPageIndex >= pages.length) break;
-        }
-        
-        page.drawText(`${i + 1}. ${RESIDENTS[i]}`, { x: 50, y: currentY, size: 12, font });
-        
-        if (sigData && sigData.signature) {
-          try {
-            const sig = sigData.signature.split(',')[1];
-            const sigImage = await pdfDoc.embedPng(Buffer.from(sig, 'base64'));
-            page.drawImage(sigImage, { x: 300, y: currentY - 30, width: 100, height: 40 });
-          } catch (e) {
-            console.error('Error embedding signature:', e);
-          }
-        }
-        
-        currentY -= 40;
+      const page = pages[0];
+
+      let signatureIndex = 0;
+      for (const [residentId, signatureData] of Object.entries(signatures)) {
+        const { signature } = signatureData;
+        const signatureImage = await pdfDoc.embedPng(signature);
+        const yPos = 750 - (signatureIndex * 25);
+        page.drawImage(signatureImage, {
+          x: 50,
+          y: Math.max(yPos, 50),
+          width: 80,
+          height: 30
+        });
+        signatureIndex++;
       }
-      
-      const updatedPdfBytes = await pdfDoc.save();
-      const blob = new Blob([updatedPdfBytes], { type: 'application/pdf' });
+
+      const pdfBytesOutput = await pdfDoc.save();
+      const blob = new Blob([pdfBytesOutput], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `signatures_${new Date().getTime()}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'form_with_signatures.pdf';
+      link.click();
       URL.revokeObjectURL(url);
-      setStatusMessage('PDF הורד בהצלחה!');
-    } catch (err) {
-      console.error(err);
-      setStatusMessage(`שגיאה: ${err.message}`);
+
+      setStatusMessage('הורדה בוצעה בהצלחה');
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      setStatusMessage('שגיאה בהורדה: ' + error.message);
     } finally {
       setIsGeneratingPdf(false);
     }
   };
 
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#000';
+  }, []);
+
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial', textAlign: 'right', maxWidth: '1000px', margin: '0 auto' }}>
+    <div style={{
+      padding: '20px',
+      direction: 'rtl',
+      fontFamily: 'Arial, sans-serif',
+      backgroundColor: '#f5f5f5',
+      minHeight: '100vh'
+    }}>
       <h1>מערכת חתימות דיגיטלית</h1>
       <h2>רחבת הרב עוזיאל 14-4</h2>
-      <p>תושב {currentResidentId + 1}: {RESIDENTS[currentResidentId]}</p>
-      <p style={{ marginBottom: '10px', fontSize: '14px' }}>חתימות: {Object.keys(signatures).length} / {RESIDENTS.length}</p>
+      <div style={{ marginBottom: '20px' }}>
+        <span>תושב: </span>
+        <span style={{ fontWeight: 'bold' }}>{currentResidentId + 1}: {RESIDENTS[currentResidentId] || ''}</span>
+      </div>
+      <div style={{ marginBottom: '20px' }}>
+        <span>חתימות: {Object.keys(signatures).length} / {RESIDENTS.length}</span>
+      </div>
 
       <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-        <div style={{ flex: 1, border: '1px solid #ccc', padding: '10px', backgroundColor: '#f9f9f9', maxHeight: '600px', overflowY: 'auto' }}>
+        <div style={{ flex: 1, paddingRight: '20px' }}>
           <h3>קובץ ה-PDF</h3>
-          <iframe src={PDF_PATH} style={{ width: '100%', height: '500px', border: 'none' }} />
+          <iframe
+            src={PDF_PATH}
+            style={{
+              width: '100%',
+              height: '600px',
+              border: '1px solid #ccc'
+            }}
+          />
         </div>
 
         <div style={{ flex: 1 }}>
@@ -158,9 +171,14 @@ const App = () => {
             value={residentName}
             onChange={(e) => setResidentName(e.target.value)}
             placeholder="הקלד את שמך המלא"
-            style={{ width: '100%', padding: '8px', marginBottom: '10px', fontSize: '14px', boxSizing: 'border-box' }}
+            style={{
+              width: '100%',
+              padding: '8px',
+              marginBottom: '10px',
+              border: '1px solid #ccc',
+              borderRadius: '4px'
+            }}
           />
-          
           <canvas
             ref={canvasRef}
             width={300}
@@ -178,18 +196,30 @@ const App = () => {
           />
 
           <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-            <button onClick={handleSignature} style={{ flex: 1, padding: '10px', backgroundColor: '#4CAF50', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px' }}>אישור חתימה</button>
-            <button onClick={handleClear} style={{ flex: 1, padding: '10px', backgroundColor: '#FF9800', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px' }}>ניקוי</button>
-            <button onClick={handleNext} style={{ flex: 1, padding: '10px', backgroundColor: '#2196F3', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px' }}>הבא</button>
+            <button onClick={handleSignature} style={{ flex: 1, padding: '10px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>אישור חתימה</button>
+            <button onClick={handleClear} style={{ flex: 1, padding: '10px', backgroundColor: '#FF9800', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>ניקוי</button>
+            <button onClick={handleNext} style={{ flex: 1, padding: '10px', backgroundColor: '#2196F3', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>הבא</button>
           </div>
 
-          {statusMessage && <p style={{ color: statusMessage.includes('בהצלחה') ? 'green' : 'red', fontSize: '14px' }}>{statusMessage}</p>}
+          {statusMessage && <p style={{ color: statusMessage.includes('שגיאה') ? 'red' : 'green', fontSize: '14px' }}>{statusMessage}</p>}
         </div>
       </div>
 
       <div style={{ textAlign: 'center', marginTop: '20px' }}>
-        <button onClick={handleDownloadPdf} disabled={isGeneratingPdf} style={{ padding: '12px 30px', fontSize: '16px', backgroundColor: '#9C27B0', color: 'white', border: 'none', cursor: isGeneratingPdf ? 'not-allowed' : 'pointer', borderRadius: '4px', opacity: isGeneratingPdf ? 0.6 : 1 }}>
-          {isGeneratingPdf ? 'מכין טופס...' : 'הורדת טופס'}
+        <button
+          onClick={handleDownloadPdf}
+          disabled={isGeneratingPdf}
+          style={{
+            padding: '12px 30px',
+            fontSize: '16px',
+            backgroundColor: isGeneratingPdf ? '#ccc' : '#9C27B0',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: isGeneratingPdf ? 'not-allowed' : 'pointer'
+          }}
+        >
+          {isGeneratingPdf ? 'מעבד...' : 'הורדת טופס'}
         </button>
       </div>
     </div>
