@@ -1,10 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { PDFDocument, PDFPage, rgb, StandardFonts } from 'pdf-lib';
-import SignaturePad from 'signature_pad';
 
 const RESIDENTS = ['יצחק יוסף מלריך','אפרים דנקו','הלפרין זהבה גבריאל','רימון שרה שרי(רומן)','שולמית נחמוד','אייבי מוסקוביץ','קורדון מרי','אביי פקדו','יהושוע לפיד','טקלה יוורקה','רווית שושן','ישראל רוזנבוים','צח עשת','אהרון בוקובזה','שלום','ימית גולן','נועם עמרם','הפטקה אופיר','גליק אפרים','גרוס ליפא- אדיר','ילנה זרצקי','וישניאנסקי אנה','סרגיי מסיוטין','אולגה פבלוב','נטליה','אלמקאן- גטהון וצ\'וקולוק אבייה','ללא עברית','עומרי ג\'נבה','ליכטנשטיין יהודה אריה לייב','ריטה אובטרכט','יוסי אוחיון (שני)','יפית-בהטה אסממאו'];
-const STORAGE_KEY = 'apartment_signatures_v2';
-
+const [isDrawing, setIsDrawing] = useState(false);
 const App = () => {
   const canvasRef = useRef(null);
   const [signatures, setSignatures] = useState(() => {
