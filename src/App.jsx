@@ -142,13 +142,6 @@ const App = () => {
         });
 
         // הוספת שם הדייר ליד החתימה
-        page.drawText(name, {
-          x: 140,
-          y: Math.max(yPos + 10, 60),
-          size: 10,
-          color: rgb(0, 0, 0)
-        });
-
         signatureIndex++;
       }
 
