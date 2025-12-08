@@ -132,15 +132,23 @@ const App = () => {
       for (const [residentId, signatureData] of Object.entries(signatures)) {
         const { signature, name } = signatureData;
         const signatureImage = await pdfDoc.embedPng(signature);
-        const yPos = 750 - (signatureIndex * 25);
-        
-        page.drawImage(signatureImage, {
-          x: 50,
-          y: Math.max(yPos, 50),
-          width: 80,
-          height: 30
+// Calculate table positioning (rows 1-13 on page 3, rows 14-20 on page 4, rightmost column)
+const rowNumber = signatureIndex + 1;
+let pageNum = 0;
+let rowInPage = rowNumber;
+if (rowNumber > 13) {
+  pageNum = 1;
+  rowInPage = rowNumber - 13;
+}
+const xPos = 970; // Right column of signature table
+const yPos = 195 + (rowInPage - 1) * 26; // Table row height ~26px
+const targetPage = pages[pageNum];        
+targetPage.drawImage(signatureImage, {
+          x: xPos - 35,
+          y: yPos,
+          width: 35,
+          height: 22
         });
-
         // הוספת שם הדייר ליד החתימה
         signatureIndex++;
       }
