@@ -20,6 +20,9 @@ const App = () => {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [currentResidentId, setCurrentResidentId] = useState(0);
   const [isDrawing, setIsDrawing] = useState(false);
+   const [isAdmin, setIsAdmin] = useState(false);
+   const [adminPassword, setAdminPassword] = useState('');
+  
 
   // משטח חתימה עצמאי - כל דייר חותם בריק שלו
   const handleMouseDown = () => {
@@ -66,6 +69,14 @@ const App = () => {
   };
 
   // שמירת החתימה וניקוי המשטח לדייר הבא
+   const handleAdminLogin = () => {
+       if (adminPassword === 'admin123') {
+             setIsAdmin(true);
+           } else {
+             alert('סיסמה שגויה');
+           }
+      };
+  
   const handleSignature = () => {
     if (!residentName.trim()) {
       setStatusMessage('בחר שם');
@@ -188,6 +199,24 @@ targetPage.drawImage(signatureImage, {
   }, []);
 
   return (
+        {isAdmin ? (
+                <div style={{ padding: '20px', textAlign: 'center' }}>
+                          <h1>שלום מנהל</h1>
+                          <p>מספר: {Object.keys(signatures).length} / {RESIDENTS.length}</p>
+                          <button onClick={handleDownloadPdf} style={{ padding: '10px 20px', fontSize: '16px', backgroundColor: '#9C27B0', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>הורדת טופס</button>
+                          <button onClick={() => setIsAdmin(false)} style={{ padding: '10px 20px', fontSize: '16px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginLeft: '10px' }}>שטור</button>
+                        </div>
+              ) : (
+          <div style={{ padding: '20px', textAlign: 'center', maxWidth: '300px', margin: '50px auto' }}>
+                    <h1>דף מנהל</h1>
+                    <input type="password" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} placeholder="הכנס מנהל" style={{ width: '100%', padding: '10px', marginBottom: '10px', border: '1px solid #ccc', borderRadius: '4px', boxSizing: 'border-box' }} />
+                    <button onClick={handleAdminLogin} style={{ width: '100%', padding: '10px', backgroundColor: '#9C27B0', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '16px' }}>הכנס</button>
+                  </div>
+          <div style={{ padding: '20px', direction: 'rtl', fontFamily: 'Arial, sans-serif', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
+          {/* Insert the entire regular signature form here */}
+        </div>
+      )}
+
     <div style={{
       padding: '20px',
       direction: 'rtl',
