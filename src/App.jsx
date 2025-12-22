@@ -150,6 +150,13 @@ targetPage.drawImage(signatureImage, {
           height: 22
         });
         // הוספת שם הדייר ליד החתימה
+         targetPage.drawText(name, {
+              x: 630,
+              y: yPos + 5,
+              size: 10,
+              color: rgb(0, 0, 0)
+                   });
+        
         signatureIndex++;
       }
 
