@@ -144,14 +144,14 @@ const xPos = 970; // Right column of signature table
 const yPos = 195 + (rowInPage - 1) * 26; // Table row height ~26px
 const targetPage = pages[pageNum];        
 targetPage.drawImage(signatureImage, {
-          x: xPos - 35,
+          x: 100,
           y: yPos,
           width: 35,
           height: 22
         });
         // הוספת שם הדייר ליד החתימה
          targetPage.drawText(name, {
-              x: 630,
+              x: 850,
               y: yPos + 5,
               size: 10,
               color: rgb(0, 0, 0)
